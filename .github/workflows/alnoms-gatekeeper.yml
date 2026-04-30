@@ -29,6 +29,6 @@ jobs:
 
       - name: Run Alnoms Guardrail
         uses: arprax/alnoms-action@main
-        env:
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FAIL_ON: "O(N^2)"
