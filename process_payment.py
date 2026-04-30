@@ -17,7 +17,7 @@ def process_stripe_reconciliation(event_payload: dict):
     # 🚨 THE VILLAIN: The O(N * M) Shadow Loop
     # The developer used a List `[]` instead of a Set `{}`.
     # This will pass SonarQube, but it will crash the server under load.
-    local_transaction_ids = [tx['stripe_charge_id'] for tx in local_transactions]
+    local_transaction_ids = set([tx['stripe_charge_id'] for tx in local_transactions])
 
     for charge in stripe_events:
         charge_id = charge['id']
