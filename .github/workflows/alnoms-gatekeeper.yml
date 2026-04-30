@@ -32,3 +32,6 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FAIL_ON: "O(N^2)"
+        env:
+          # This maps directly to os.environ['GITHUB_TOKEN'] in your Python script
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
