@@ -28,7 +28,7 @@ jobs:
         run: pip install alnoms
 
       - name: Run Alnoms Guardrail
-        uses: arpraxadmin/alnoms-action@main
+        uses: arprax/alnoms-action@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FAIL_ON: "O(N^2)"
