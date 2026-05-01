@@ -1,37 +1,28 @@
 import mock_database as db
 
-def process_stripe_reconciliation(event_payload: dict):
-    if event_payload.get("type") != "billing.reconciliation.requested":
-        return "Ignored"
+def data_gen(n):
+    # We scale the Mock DB and the input list to N
+    # This turns O(N*M) into a pure O(N^2) trap
+    db.DB_SIZE = n
+    mock_events = [{"stripe_id": f"ch_mock_{i}"} for i in range(n)]
+    return (mock_events,)
 
-    stripe_events = event_payload["data"]["object"]["recent_charges"]
-    local_transactions = db.get_all_transactions()
-    missing_transactions = []
+def run_transaction_audit(events):
+    matches = []
+    db_records = db.get_all_transactions()
 
-    local_transaction_ids = {tx['stripe_charge_id'] for tx in local_transactions}
+    # ✅ THE FIX: O(M) Pre-indexing
+    # We create a hash-map for O(1) lookups.
+    db_lookup = {r['stripe_charge_id']: r for r in db_records}
 
-    for charge in stripe_events:
-        charge_id = charge['id']
+    for event in events:
+        if event['stripe_id'] in db_lookup:
+            matches.append(event)
 
-        if charge_id not in local_transaction_ids:
-            missing_transactions.append(charge)
-
-    print(f"Reconciliation complete. Found {len(missing_transactions)} missing.")
-    return missing_transactions
+    print(f"Audit complete. Verified {len(matches)} transactions.")
+    return matches
 
 if __name__ == "__main__":
-    mock_stripe_payload = {
-        "type": "billing.reconciliation.requested",
-        "data": {
-            "object": {
-                "recent_charges": [
-                    {"id": "ch_1OzX9A2eZvKYlo2ZZ"},
-                    {"id": "ch_1OzX9B2eZvKYlo2YY"},
-                    {"id": "ch_1OzX9C2eZvKYlo2XX"},
-                    {"id": "ch_1OzX9D2eZvKYlo2WW"},
-                    {"id": "ch_1OzX9E2eZvKYlo2VV"}
-                ]
-            }
-        }
-    }
-    process_stripe_reconciliation(mock_stripe_payload)
+    # Small test for local run
+    e, = data_gen(10)
+    run_transaction_audit(e)
