@@ -19,7 +19,7 @@ def process_stripe_reconciliation(event_payload: dict):
     local_transactions = db.get_all_transactions()
     missing_transactions = []
 
-    local_transaction_ids = {tx['stripe_charge_id'] for tx in local_transactions}
+    local_transaction_ids = set(tx['stripe_charge_id'] for tx in local_transactions)
 
     for charge in stripe_events:
         charge_id = charge['id']
