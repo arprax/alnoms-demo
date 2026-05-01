@@ -1,5 +1,16 @@
 import mock_database as db
 
+def data_gen(n):
+    actual_n = n * 100
+    mock_charges = [{"id": f"ch_mock_{i}"} for i in range(actual_n)]
+    db.DB_SIZE = actual_n
+
+    mock_stripe_payload = {
+        "type": "billing.reconciliation.requested",
+        "data": {"object": {"recent_charges": mock_charges}}
+    }
+    return (mock_stripe_payload,)
+
 def process_stripe_reconciliation(event_payload: dict):
     if event_payload.get("type") != "billing.reconciliation.requested":
         return "Ignored"
@@ -9,11 +20,12 @@ def process_stripe_reconciliation(event_payload: dict):
     missing_transactions = []
 
     local_transaction_ids = [tx['stripe_charge_id'] for tx in local_transactions]
+    local_transaction_ids_set = set(local_transaction_ids)  # For O(1) lookups
 
     for charge in stripe_events:
         charge_id = charge['id']
 
-        if charge_id not in local_transaction_ids:
+        if charge_id not in local_transaction_ids_set:
             missing_transactions.append(charge)
 
     print(f"Reconciliation complete. Found {len(missing_transactions)} missing.")
