@@ -9,11 +9,12 @@ def process_stripe_reconciliation(event_payload: dict):
     missing_transactions = []
 
     local_transaction_ids = [tx['stripe_charge_id'] for tx in local_transactions]
+    local_transaction_ids_set = set(local_transaction_ids)
 
     for charge in stripe_events:
         charge_id = charge['id']
 
-        if charge_id not in local_transaction_ids:
+        if charge_id not in local_transaction_ids_set:
             missing_transactions.append(charge)
 
     print(f"Reconciliation complete. Found {len(missing_transactions)} missing.")
